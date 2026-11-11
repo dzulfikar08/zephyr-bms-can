@@ -1,0 +1,15 @@
+/*
+ * Devicetree overlay, applied automatically on top of the board's .dts
+ * because its name matches the board (app/boards/<board>.overlay).
+ *
+ * The edge controller (edge-linux-can, can-bitrate@can0) runs its bus at
+ * 500 kbit/s; every node on a real CAN bus must use the same bitrate.
+ * Without this, Zephyr's default (CONFIG_CAN_DEFAULT_BITRATE) is 125 kbit/s.
+ * In the emulators this does not matter (Renode, QEMU and vcan ignore bit
+ * timing), but on a real bus it is the difference between working and
+ * error frames.
+ */
+&fdcan1 {
+	bitrate = <500000>;
+	sample-point = <875>;
+};

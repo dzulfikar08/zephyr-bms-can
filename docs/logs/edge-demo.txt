@@ -1,0 +1,42 @@
+starting QEMU: /mnt/yocto/zephyr/zephyr-sdk-0.16.8/sysroots/x86_64-pokysdk-linux/usr/bin/qemu-system-aarch64 ... -object can-bus,id=canbus0 -object can-host-socketcan,id=canhost0,if=vcan0,canbus=canbus0 -device kvaser_pci,canbus=canbus0
+[PASS]   31.9s  BMS heartbeat on vcan0
+[PASS]  141.0s  edge image boots to a login prompt  (109 s)
+[PASS]  167.5s  guest systemd running  (running)
+[PASS]  168.4s  guest can0 (kvaser_pci) UP  (5: can0: <NOARP,UP,LOWER_UP,ECHO>)
+[PASS]  168.9s  can-demo@can0 active (sends 0x101 heartbeats)  (active)
+[PASS]  169.3s  edge heartbeat 0x101 on host vcan0
+[PASS]  169.4s  BMS sees the edge controller (BmsStatus.EdgeAlive=1)  (State=Standby Contactor=0 EdgeAlive=1)
+[PASS]  169.4s  BMS log: edge controller heartbeat seen
+       guest$ candump -n 12 -t d can0,410:7F0
+          (000.000000)  can0  410   [8]  21 0C 00 00 A0 81 00 6E
+          (000.002496)  can0  411   [7]  1E 0F 3C 0F 08 05 00
+          (000.002632)  can0  412   [6]  41 42 42 43 43 04
+          (000.003281)  can0  413   [7]  00 28 0F 34 0F 20 0F
+          (000.002046)  can0  413   [7]  01 2D 0F 3C 0F 25 0F
+          (000.001745)  can0  413   [5]  02 2A 0F 1E 0F
+          (000.003550)  can0  41F   [8]  8A 00 00 00 8B 00 00 00
+          (000.154774)  can0  410   [8]  21 0C 00 00 A0 81 00 6F
+          (000.033740)  can0  410   [8]  21 0C 00 00 A0 81 00 70
+          (000.094337)  can0  410   [8]  21 0C 00 00 A0 81 00 71
+          (000.103930)  can0  410   [8]  21 0C 00 00 A0 81 00 72
+          (000.095938)  can0  410   [8]  21 0C 00 00 A0 81 00 73
+[PASS]  170.1s  BMS frames (0x41x) arrive on the guest's can0
+       guest$ candump -n 1 -T 3000 can0,421:7FF & sleep 0.3; cansend can0 420#0151; wait
+           can0  421   [4]  01 51 00 02
+         [1]+  Done                       candump -n 1 -T 3000 can0,421:7FF
+[PASS]  171.0s  guest receives BmsCommandAck for its ContactorClose  (ack bytes: Cmd=01 Token=51 Result=00 (Ok) State=02 (Active))
+[PASS]  171.0s  the guest's command crossed vcan0  (Cmd=ContactorClose Token=81)
+[PASS]  171.0s  BMS closed the contactor on the edge's command  (State=Active Contactor=1 PackCurrent=18.5 EdgeAlive=1)
+       guest$ journalctl -u can-demo@can0 | grep -E 'first frame|frames' | tail -n 12
+         listener: first frame from id 0x101 len 8
+         listener: first frame from id 0x410 len 8
+         listener: first frame from id 0x411 len 7
+         listener: first frame from id 0x412 len 6
+         listener: first frame from id 0x413 len 7
+         listener: first frame from id 0x41f len 8
+         listener: first frame from id 0x420 len 2
+         listener: first frame from id 0x421 len 4
+keeping both running for 12 s
+[PASS]  206.3s  guest powered off cleanly  (exit 0)
+13/13 checks passed
+python3 tools/edge_demo.py --keep 12 --can-watch /tmp/edge-canwatch2.txt  165.64s user 76.39s system 116% cpu 3:27.27 total

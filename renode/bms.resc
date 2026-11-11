@@ -1,0 +1,42 @@
+:name: zephyr-bms on STM32 NUCLEO-H743ZI
+:description: Fake BMS firmware (Zephyr) with FDCAN1 on a CAN hub bridged to host SocketCAN
+
+# Usage (from the repo root, see scripts/run-renode.sh):
+#   cd <repo root>; renode -e '$bin=@/path/to/zephyr.elf' renode/bms.resc
+# Optional variables, set the same way before the script:
+#   $can_if   host SocketCAN interface (default vcan0)
+#   $uart_log file the firmware's console is copied to
+
+using sysbus
+
+$bin?=@/mnt/yocto/zephyr/build/zephyr/zephyr.elf
+$can_if?="vcan0"
+$uart_log?=@/tmp/zephyr-bms-uart.log
+# Relative paths are looked up from the current directory: run from the repo root.
+$repl?=@renode/nucleo_h743zi_bms.repl
+
+# One emulated machine. The H743ZI and H753ZI differ only by a crypto block;
+# nucleo_h743zi_bms.repl takes Renode's NUCLEO-H753ZI board file (-> stm32h7.repl,
+# where fdcan1 is a CAN.MCAN model and the IWDG a watchdog model) and fixes
+# the watchdog clock.
+mach create "bms"
+machine LoadPlatformDescription $repl
+
+# The firmware's console: shown as a log/analyzer, and copied to a file
+# (the test script reads it).
+showAnalyzer usart3
+usart3 CreateFileBackend $uart_log true
+
+macro reset
+"""
+    sysbus LoadELF $bin
+"""
+runMacro $reset
+
+# The CAN wiring: fdcan1 <-> canHub <-> host SocketCAN interface.
+# A CANHub is Renode's model of a bus: every frame a node sends is delivered
+# to every other node on the hub.
+emulation CreateCANHub "canHub"
+connector Connect fdcan1 canHub
+machine CreateSocketCANBridge "socketcan" $can_if
+connector Connect socketcan canHub

@@ -1,0 +1,42 @@
+starting Renode: /mnt/yocto/zephyr/renode/renode_1.17.0-portable/renode ... -e '$bin=@/mnt/yocto/zephyr/build/zephyr/zephyr.elf; $uart_log=@/tmp/zephyr-bms-test-uart.log; $can_if="vcan0"; include @renode/bms.resc; start'
+[PASS]   15.4s  firmware boots (UART: Booting Zephyr)
+[PASS]   15.4s  CAN controller started (UART)
+[PASS]   20.3s  first BmsHeartbeat on vcan0  (20.3 s after the Renode start)
+[PASS]   25.0s  firmware uptime reached 10 s  (4.7 s of wall clock after the first heartbeat)
+[PASS]   35.0s  BmsStatus every 100 ms  (104 frames in 10 s)
+[PASS]   35.0s  BmsHeartbeat every 1 s  (10 frames in 10 s)
+[PASS]   35.0s  BmsCellSummary and BmsTemperatures every 500 ms  (20 and 20 frames in 10 s)
+       info: virtual/host time over the window: 9 s (firmware uptime) in 9.01 s (host)
+[PASS]   35.0s  BmsCellVoltages: all 3 multiplexed groups  (groups [0, 1, 2])
+[PASS]   35.0s  heartbeat Seq counts up by 1  ([10, 11, 12, 13, 14, 15, 16, 17, 18, 19])
+[PASS]   35.0s  initial state Standby, contactor open  (PackVoltage=31.05 PackCurrent=0 Soc=80 State=Standby Contactor=0)
+       info: 0 edge heartbeats (0x101) seen so far; BmsStatus.EdgeAlive=0
+[PASS]   35.1s  ContactorClose -> Ok, Active  (ack after 110 ms: Cmd=ContactorClose Result=Ok State=Active)
+[PASS]   35.2s  status shows contactor closed and discharge current  (State=Active Contactor=1 PackCurrent=18.5 PackVoltage=30.31 Soc=80)
+[PASS]   40.3s  pack voltage falls while discharging  (31.05 V -> 30.27 V (incl. I*R drop))
+[PASS]   40.3s  BalancingOn -> Ok  (ack after 14 ms: Cmd=BalancingOn Result=Ok State=Active)
+[PASS]   40.5s  BmsCellSummary.BalancingMask set  (mask=0x7B)
+[PASS]   40.6s  unknown command 0x55 -> Unknown
+[PASS]   40.6s  SimOverTemp -> Ok  (ack after 4 ms: Cmd=SimOverTemp Result=Ok State=Active)
+[PASS]   49.5s  BmsFault OverTemp raised  (after 8.9 s: FaultFlags=4 Trigger=OverTemp Index=2 Value=60.3 degC)
+[PASS]   49.5s  state Fault, contactor opened, FaultFlags bit 2  (State=Fault Contactor=0 FaultFlags=4 PackCurrent=0)
+[PASS]   50.1s  UART logs the fault
+[PASS]   50.2s  ContactorClose -> Rejected, Fault  (ack after 32 ms: Cmd=ContactorClose Result=Rejected State=Fault)
+[PASS]   50.2s  FaultReset -> Rejected, Fault  (ack after 38 ms: Cmd=FaultReset Result=Rejected State=Fault)
+[PASS]   50.2s  SimNormal -> Ok  (ack after 11 ms: Cmd=SimNormal Result=Ok State=Fault)
+[PASS]   59.8s  temperature back below 50 degC  (TempMax=49)
+[PASS]   59.8s  FaultReset -> Ok, Standby  (ack after 24 ms: Cmd=FaultReset Result=Ok State=Standby)
+[PASS]   59.8s  SimOverVoltage -> Ok  (ack after 7 ms: Cmd=SimOverVoltage Result=Ok State=Standby)
+[PASS]   75.4s  BmsFault OverVoltage raised  (after 15.6 s: cell 3 at 4252 mV)
+[PASS]   75.4s  SimNormal -> Ok  (ack after 9 ms: Cmd=SimNormal Result=Ok State=Fault)
+[PASS]   76.6s  cell voltage back below 4.2 V  (CellMax=4197 mV)
+[PASS]   76.6s  FaultReset -> Ok, Standby  (ack after 15 ms: Cmd=FaultReset Result=Ok State=Standby)
+[PASS]   76.6s  BalancingOff -> Ok  (ack after 12 ms: Cmd=BalancingOff Result=Ok State=Standby)
+[PASS]   76.9s  SimHang -> Ok  (ack after 9 ms: Cmd=SimHang Result=Ok State=Standby)
+[PASS]   76.9s  UART: task watchdog fired
+[PASS]   78.9s  BMS rebooted (heartbeat Seq restarted)  (Seq 61 -> 0 after 2.1 s)
+[PASS]   78.9s  UART: second boot
+[PASS]   79.0s  after reboot: Standby, contactor open
+frames seen on vcan0: 410=631 411=126 412=126 413=189 41F=63 421=13 430=15
+36/36 checks passed
+scripts/test.sh  26.09s user 12.89s system 48% cpu 1:20.05 total

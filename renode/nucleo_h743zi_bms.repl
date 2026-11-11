@@ -1,0 +1,11 @@
+// Renode platform for zephyr-bms: Renode's NUCLEO-H753ZI board (H743 + crypto)
+// with one fix.
+using "platforms/boards/nucleo_h753zi.repl"
+
+// Renode's stm32h7.repl clocks the IWDG at 56 kHz. The STM32H743 datasheet
+// gives LSI = 32 kHz (typical), and Zephyr's IWDG driver computes prescaler
+// and reload for 32 kHz. At 56 kHz the watchdog expires 1.75x too early:
+// task_wdt's 120 ms hardware window became ~69 ms, shorter than its 100 ms
+// feed period, and the firmware was reset in a loop right after boot.
+watchdog:
+    frequency: 32000

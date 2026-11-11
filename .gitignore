@@ -1,0 +1,6 @@
+# build output lives on the build disk ($ZBMS_BUILD); local leftovers:
+build/
+target/
+__pycache__/
+*.pyc
+/.cache/
